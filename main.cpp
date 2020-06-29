@@ -8,27 +8,14 @@
 #include <QStringList>
 #include <QDir>
 
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 #define RowCountNameLocation 25
 #define RowCountValueLocation 26
 #define XListLocation 27
 #define DataRowBegin 28
 
-
-class Point
-{
-public:
-    Point(){}
-    Point(double x, double y, double z)
-    {xx = x; yy = y; zz = z;}
-
-    void Print()
-    {qDebug()<<"x:"<<xx<<" y:"<<yy<<" z:"<<zz;}
-
-public:
-    double xx;
-    double yy;
-    double zz;
-};
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +31,9 @@ int main(int argc, char *argv[])
     qDebug()<<rowCntName<<":"<<rowCnt;
 
     QStringList listX = readData.at(XListLocation);
-    std::vector<Point> vPoints;
+
+    //data to pcd
+    pcl::PointCloud<pcl::PointXYZ> cloud;
 
     for ( int i = 0; i <rowCnt; ++i )
     {
@@ -54,21 +43,26 @@ int main(int argc, char *argv[])
         {
             if(!listY.at(j).isEmpty())
             {
-                Point p;
-                p.xx = listX.at(j).toDouble();
-                p.yy = listY.at(0).toDouble();
-                p.zz = listY.at(j).toDouble();
+                pcl::PointXYZ p;
+                p.x = listX.at(j).toDouble()/1000.0;    //pcl單位是m
+                p.y = listY.at(0).toDouble()/1000.0;    //pcl單位是m
+                p.z = listY.at(j).toDouble()/1000.0;    //pcl單位是m
 
-                vPoints.push_back(p);
+                cloud.push_back(p);
             }
         }
     }
 
-    qDebug()<<"vPoints.size():"<<vPoints.size();
+    qDebug()<<"cloud.size():"<<cloud.size();
 
-    for (int var = 0; var < 10; ++var) {
-        vPoints.at(var).Print();
-    }
+    for (std::size_t i = 0; i < 10; ++i)
+        std::cerr << "    " << cloud.points[i].x << " " << cloud.points[i].y << " " << cloud.points[i].z << std::endl;
+
+
+    // Save cloud data
+    pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
+    std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
+
 
     return 0;
 }

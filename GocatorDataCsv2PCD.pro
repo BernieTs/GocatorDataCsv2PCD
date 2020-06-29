@@ -22,6 +22,29 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+#qtcsv
 INCLUDEPATH += D:/libs/qtcsv/include
 LIBS += -LD:/libs/qtcsv/lib/release
 LIBS += -lqtcsv
+
+#PCL
+PCLROOT = D:/libs/PCL
+INCLUDEPATH += $${PCLROOT}/include/pcl-1.8 \
+               $${PCLROOT}/3rdParty/Boost/include/boost-1_64 \
+               $${PCLROOT}/3rdParty/Eigen/eigen3 \
+               $${PCLROOT}/3rdParty/FLANN/include \
+
+PCL_LIB = $${PCLROOT}/lib
+LIBS += -L$${PCL_LIB}
+
+
+LIBS += -lpcl_common_release -lpcl_features_release -lpcl_io_release -lpcl_search_release \
+        -lpcl_surface_release -lpcl_kdtree_release -lpcl_segmentation_release -lpcl_filters_release
+
+LIBS += $${PCLROOT}/3rdParty/Boost/lib/libboost_thread-vc140-mt-1_64.lib \
+        $${PCLROOT}/3rdParty/Boost/lib/libboost_system-vc140-mt-1_64.lib \
+        $${PCLROOT}/3rdParty/Boost/lib/libboost_date_time-vc140-mt-1_64.lib \
+        $${PCLROOT}/3rdParty/Boost/lib/libboost_chrono-vc140-mt-1_64.lib \
+        $${PCLROOT}/3rdParty/Boost/lib/libboost_filesystem-vc140-mt-1_64.lib \
+        $${PCLROOT}/3rdParty/Boost/lib/libboost_iostreams-vc140-mt-1_64.lib
+
