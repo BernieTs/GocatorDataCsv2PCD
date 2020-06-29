@@ -7,6 +7,7 @@
 #include <QList>
 #include <QStringList>
 #include <QDir>
+#include <QString>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -19,18 +20,62 @@
 
 int main(int argc, char *argv[])
 {
-    QString filePath = QDir::currentPath() + "/replay_40959_2020-6-24.csv";
+
+    bool fileExists;
+    bool isCSVfile;
+    QString filePath;
+    do{
+        std::cout<<"Enter Gocator SnapShot sensor data file name(.csv):";
+        std::string fileName;
+        std::cin>>fileName;
+        filePath = QString::fromStdString(fileName);
+        fileExists = (QFileInfo::exists(filePath) && QFileInfo(filePath).isFile())? true: false;   //確認file是否存在
+        isCSVfile = (QFileInfo(filePath).suffix() == "csv")? true :false;   //確認file是否為csv
+    }while(!fileExists || !isCSVfile);
 
     // read data from file
     QList<QStringList> readData = QtCSV::Reader::readToList(filePath);
 
     //data row count name和value位置
+    if(readData.size()<RowCountNameLocation)
+    {
+        qDebug()<<"This csv file might not be Gocator SnapeShot data format! Please check the file.(wrong RowCountNameLocation)";
+        return 0;
+    }
     QString rowCntName = readData.at(RowCountNameLocation).at(6);
-    int rowCnt = readData.at(RowCountValueLocation).at(6).toInt();
+    if(rowCntName.isEmpty() )
+    {
+        qDebug()<<"Cannot find rowCntName";
+        return 0;
+    }
+
+    if(readData.size()<RowCountValueLocation)
+    {
+        qDebug()<<"This csv file might not be Gocator SnapeShot data format! Please check the file.(wrong RowCountValueLocation)";
+        return 0;
+    }
+    bool ok;
+    int rowCnt = readData.at(RowCountValueLocation).at(6).toInt(&ok);
+    if(!ok)
+    {
+        qDebug()<<"Cannot read row count value";
+        return 0;
+    }
 
     qDebug()<<rowCntName<<":"<<rowCnt;
 
+    if(readData.size()<XListLocation)
+    {
+        qDebug()<<"This csv file might not be Gocator SnapeShot data format! Please check the file.(wrong XListLocation)";
+        return 0;
+    }
     QStringList listX = readData.at(XListLocation);
+
+    if(readData.size()<DataRowBegin)
+    {
+        qDebug()<<"This csv file might not be Gocator SnapeShot data format! Please check the file.(wrong DataRowBegin)";
+        return 0;
+    }
 
     //data to pcd
     pcl::PointCloud<pcl::PointXYZ> cloud;
@@ -58,11 +103,9 @@ int main(int argc, char *argv[])
     for (std::size_t i = 0; i < 10; ++i)
         std::cerr << "    " << cloud.points[i].x << " " << cloud.points[i].y << " " << cloud.points[i].z << std::endl;
 
-
     // Save cloud data
     pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
-    std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
-
+    std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd" << std::endl;
 
     return 0;
 }
