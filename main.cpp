@@ -48,12 +48,6 @@ int main(int argc, char *argv[])
         qDebug()<<"Cannot find rowCntName";
         return 0;
     }
-
-    if(readData.size()<RowCountValueLocation)
-    {
-        qDebug()<<"This csv file might not be Gocator SnapeShot data format! Please check the file.(wrong RowCountValueLocation)";
-        return 0;
-    }
     bool ok;
     int rowCnt = readData.at(RowCountValueLocation).at(6).toInt(&ok);
     if(!ok)
@@ -63,6 +57,21 @@ int main(int argc, char *argv[])
     }
 
     qDebug()<<rowCntName<<":"<<rowCnt;
+
+    QString colCntName = readData.at(RowCountNameLocation).at(7);
+    if(colCntName.isEmpty() )
+    {
+        qDebug()<<"Cannot find colCntName";
+        return 0;
+    }
+    int colCnt = readData.at(RowCountValueLocation).at(7).toInt(&ok);
+    if(!ok)
+    {
+        qDebug()<<"Cannot read row count value";
+        return 0;
+    }
+    qDebug()<<colCntName<<":"<<colCnt;
+
 
     if(readData.size()<XListLocation)
     {
@@ -77,24 +86,28 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    //data to pcd
-    pcl::PointCloud<pcl::PointXYZ> cloud;
 
+    // Fill in the cloud data
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+    cloud.width    = colCnt;
+    cloud.height   = rowCnt;
+    cloud.is_dense = false;
+    cloud.points.resize (cloud.width * cloud.height);
+
+    //bad point
+    const float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+    int cnt = 0;
     for ( int i = 0; i <rowCnt; ++i )
     {
         QStringList listY = readData.at(DataRowBegin + i);
 
         for(int j=1; j<listY.size(); j++)
         {
-            if(!listY.at(j).isEmpty())
-            {
-                pcl::PointXYZ p;
-                p.x = listX.at(j).toDouble()/1000.0;    //pcl單位是m
-                p.y = listY.at(0).toDouble()/1000.0;    //pcl單位是m
-                p.z = listY.at(j).toDouble()/1000.0;    //pcl單位是m
-
-                cloud.push_back(p);
-            }
+            cloud.points[cnt].x = listX.at(j).toDouble()/1000.0;    //pcl單位是m
+            cloud.points[cnt].y = listY.at(0).toDouble()/1000.0;    //pcl單位是m
+            cloud.points[cnt].z = (!listY.at(j).isEmpty()) ? (listY.at(j).toDouble()/1000.0) : bad_point;    //pcl單位是m
+            cnt++;
         }
     }
 
