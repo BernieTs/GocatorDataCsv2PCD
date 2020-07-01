@@ -118,5 +118,6 @@ int main(int argc, char *argv[])
     pcl::io::savePCDFileASCII (saveName.toStdString(), cloud);
     std::cerr << "Saved " << cloud.points.size () << " data points to "<<saveName.toStdString() << std::endl;
 
+    system("PAUSE");
     return 0;
 }
