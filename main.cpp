@@ -113,12 +113,10 @@ int main(int argc, char *argv[])
 
     qDebug()<<"cloud.size():"<<cloud.size();
 
-    for (std::size_t i = 0; i < 10; ++i)
-        std::cerr << "    " << cloud.points[i].x << " " << cloud.points[i].y << " " << cloud.points[i].z << std::endl;
-
     // Save cloud data
-    pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
-    std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd" << std::endl;
+    QString saveName = QFileInfo(filePath).baseName() + ".pcd";
+    pcl::io::savePCDFileASCII (saveName.toStdString(), cloud);
+    std::cerr << "Saved " << cloud.points.size () << " data points to "<<saveName.toStdString() << std::endl;
 
     return 0;
 }
